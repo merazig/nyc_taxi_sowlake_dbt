@@ -1,0 +1,255 @@
+version: 2
+
+models:
+
+  # ==========================================================
+  # STAGING
+  # ==========================================================
+
+  - name: stg_yellow_trips
+    description: >
+      Couche staging contenant les données Yellow Taxi issues de RAW.
+      Les timestamps sont convertis et les colonnes sont standardisées
+      pour préparer les transformations analytiques.
+
+    columns:
+
+      - name: vendor_id
+        description: "Identifiant du fournisseur du taxi."
+
+      - name: pickup_datetime
+        description: "Date et heure de prise en charge."
+
+      - name: dropoff_datetime
+        description: "Date et heure de dépose."
+
+      - name: trip_distance
+        description: "Distance du trajet en miles."
+
+      - name: pickup_location_id
+        description: "Identifiant de la zone de prise en charge."
+
+      - name: dropoff_location_id
+        description: "Identifiant de la zone de dépose."
+
+      - name: payment_type
+        description: "Type de paiement utilisé pour le trajet."
+
+      - name: fare_amount
+        description: "Montant du tarif du trajet."
+
+      - name: tip_amount
+        description: "Montant du pourboire."
+
+      - name: total_amount
+        description: "Montant total du trajet."
+
+
+  # ==========================================================
+  # INTERMEDIATE
+  # ==========================================================
+
+  - name: int_yellow_trips_enriched
+    description: >
+      Couche intermédiaire enrichissant les données staging avec
+      des indicateurs temporels et des métriques calculées.
+
+    columns:
+
+      - name: trip_duration_seconds
+        description: "Durée du trajet en secondes."
+
+      - name: speed_mph
+        description: >
+          Vitesse moyenne du trajet en miles par heure.
+          NULL lorsque la durée ou la distance n'est pas valide.
+
+      - name: distance_category
+        description: >
+          Catégorie de distance calculée à partir de trip_distance.
+          Les catégories sont invalid, short, medium, long et very_long.
+
+        tests:
+          - accepted_values:
+              values:
+                - invalid
+                - short
+                - medium
+                - long
+                - very_long
+
+      - name: pickup_day_name
+        description: "Jour de la semaine correspondant à la prise en charge."
+
+        tests:
+          - accepted_values:
+              values:
+                - Mon
+                - Tue
+                - Wed
+                - Thu
+                - Fri
+                - Sat
+                - Sun
+
+      - name: is_weekend
+        description: "Indique si la prise en charge a lieu pendant le week-end."
+
+      - name: pickup_period
+        description: >
+          Période de la journée correspondant à l'heure de prise en charge.
+
+        tests:
+          - accepted_values:
+              values:
+                - night
+                - morning
+                - afternoon
+                - evening
+
+
+  # ==========================================================
+  # FACT
+  # ==========================================================
+
+  - name: fct_yellow_trips
+    description: >
+      Table factuelle finale contenant les trajets Yellow Taxi 2025
+      après application des règles de qualité et du filtre temporel.
+
+    columns:
+
+      - name: pickup_datetime
+        description: "Date et heure de prise en charge."
+
+      - name: dropoff_datetime
+        description: "Date et heure de dépose."
+
+      - name: trip_distance
+        description: "Distance du trajet en miles."
+
+      - name: fare_amount
+        description: "Montant du tarif du trajet."
+
+      - name: tip_amount
+        description: "Montant du pourboire."
+
+      - name: total_amount
+        description: "Montant total du trajet."
+
+      - name: trip_duration_seconds
+        description: "Durée du trajet en secondes."
+
+      - name: speed_mph
+        description: "Vitesse moyenne du trajet en miles par heure."
+
+
+  # ==========================================================
+  # MART — DASHBOARD KPI
+  # ==========================================================
+
+  - name: mart_dashboard_kpi
+    description: >
+      Mart contenant les indicateurs globaux utilisés par le dashboard
+      NYC Yellow Taxi 2025.
+
+    columns:
+
+      - name: total_trips
+        description: "Nombre total de trajets."
+
+      - name: total_revenue
+        description: "Chiffre d'affaires total."
+
+      - name: avg_trip_amount
+        description: "Montant moyen par trajet."
+
+      - name: total_tips
+        description: "Montant total des pourboires."
+
+      - name: avg_tip_amount
+        description: "Pourboire moyen par trajet."
+
+      - name: avg_distance_miles
+        description: "Distance moyenne des trajets en miles."
+
+      - name: avg_duration_minutes
+        description: "Durée moyenne des trajets en minutes."
+
+      - name: avg_speed_mph
+        description: "Vitesse moyenne des trajets en miles par heure."
+
+
+  # ==========================================================
+  # MART — MONTHLY KPI
+  # ==========================================================
+
+  - name: mart_monthly_kpi
+    description: >
+      Mart contenant les indicateurs analytiques agrégés par mois
+      pour l'année 2025.
+
+    columns:
+
+      - name: month
+        description: "Premier jour du mois correspondant à l'agrégation."
+
+      - name: total_trips
+        description: "Nombre de trajets du mois."
+
+      - name: total_revenue
+        description: "Chiffre d'affaires du mois."
+
+      - name: avg_trip_amount
+        description: "Montant moyen par trajet sur le mois."
+
+      - name: total_tips
+        description: "Montant total des pourboires du mois."
+
+      - name: avg_distance_miles
+        description: "Distance moyenne des trajets du mois."
+
+      - name: avg_duration_minutes
+        description: "Durée moyenne des trajets du mois en minutes."
+
+      - name: avg_speed_mph
+        description: "Vitesse moyenne des trajets du mois."
+
+
+  # ==========================================================
+  # MART — DAY TYPE KPI
+  # ==========================================================
+
+  - name: mart_day_type_kpi
+    description: >
+      Mart comparant les principaux indicateurs entre les jours
+      de semaine et les jours du week-end.
+
+    columns:
+
+      - name: day_type
+        description: "Type de journée : Weekday ou Weekend."
+
+      - name: total_trips
+        description: "Nombre de trajets."
+
+      - name: total_revenue
+        description: "Chiffre d'affaires."
+
+      - name: avg_trip_amount
+        description: "Montant moyen par trajet."
+
+      - name: total_tips
+        description: "Montant total des pourboires."
+
+      - name: avg_tip_amount
+        description: "Pourboire moyen par trajet."
+
+      - name: avg_distance_miles
+        description: "Distance moyenne des trajets en miles."
+
+      - name: avg_duration_minutes
+        description: "Durée moyenne des trajets en minutes."
+
+      - name: avg_speed_mph
+        description: "Vitesse moyenne des trajets en miles par heure."

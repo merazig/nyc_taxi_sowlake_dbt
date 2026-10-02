@@ -1,0 +1,35 @@
+name: nyc_taxi_dwh
+version: 1.0.0
+config-version: 2
+
+profile: nyc_taxi_dwh
+
+model-paths:
+  - models
+
+analysis-paths:
+  - analyses
+
+test-paths:
+  - tests
+
+seed-paths:
+  - seeds
+
+macro-paths:
+  - macros
+
+snapshot-paths:
+  - snapshots
+
+models:
+  nyc_taxi_dwh:
+
+    staging:
+      +materialized: view
+
+    intermediate:
+      +materialized: view
+
+    marts:
+      +materialized: table
