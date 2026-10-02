@@ -1,6 +1,7 @@
 """Load taxi nyc."""
 
 import os
+
 import requests
 
 BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
@@ -12,6 +13,7 @@ YEAR = 2025
 
 
 def download_file(month):
+    """Telecharge les parquets."""
     filename = f"yellow_tripdata_{YEAR}-{month:02d}.parquet"
     url = f"{BASE_URL}/{filename}"
     output_path = os.path.join(OUTPUT_DIR, filename)
