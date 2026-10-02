@@ -104,8 +104,9 @@ ORDER BY
     CASE pickup_period
         WHEN 'night' THEN 1
         WHEN 'morning' THEN 2
-        WHEN 'afternoon' THEN 3
-        WHEN 'evening' THEN 4
+        WHEN 'day' THEN 3
+        WHEN 'evening_rush' THEN 4
+        WHEN 'evening' THEN 5
     END;
 
 SELECT

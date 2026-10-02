@@ -62,11 +62,18 @@ SELECT
     CASE
         WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 0 AND 5
             THEN 'night'
-        WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 6 AND 11
+    
+        WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 6 AND 9
             THEN 'morning'
-        WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 12 AND 17
-            THEN 'afternoon'
-        ELSE 'evening'
+    
+        WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 10 AND 15
+            THEN 'day'
+    
+        WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 16 AND 19
+            THEN 'evening_rush'
+    
+        WHEN EXTRACT(HOUR FROM TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)) BETWEEN 20 AND 23
+            THEN 'evening'
     END AS pickup_period
 
 FROM NYC_TAXI_DB.RAW.YELLOW_TRIPS;

@@ -55,14 +55,22 @@ enriched AS (
         END AS is_weekend,
 
         CASE
-            WHEN HOUR(pickup_datetime) < 6
+            WHEN HOUR(pickup_datetime) BETWEEN 0 AND 5
                 THEN 'night'
-            WHEN HOUR(pickup_datetime) < 12
+
+            WHEN HOUR(pickup_datetime) BETWEEN 6 AND 9
                 THEN 'morning'
-            WHEN HOUR(pickup_datetime) < 18
-                THEN 'afternoon'
-            ELSE 'evening'
+
+            WHEN HOUR(pickup_datetime) BETWEEN 10 AND 15
+                THEN 'day'
+
+            WHEN HOUR(pickup_datetime) BETWEEN 16 AND 19
+                THEN 'evening_rush'
+
+            WHEN HOUR(pickup_datetime) BETWEEN 20 AND 23
+                THEN 'evening'
         END AS pickup_period,
+
 
         CASE
             WHEN trip_distance <= 0

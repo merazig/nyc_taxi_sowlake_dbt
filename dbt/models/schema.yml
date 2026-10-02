@@ -104,7 +104,8 @@ models:
               values:
                 - night
                 - morning
-                - afternoon
+                - day
+                - evening_rush
                 - evening
 
 

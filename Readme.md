@@ -1,154 +1,240 @@
-📦 Repository GitHub
-│
-├── 🏔️ Snowflake
-│   └── NYC_TAXI_DB
-│       ├── RAW
-│       ├── STAGING
-│       └── FINAL
-│
-├── 📝 SQL
-│   ├── Infrastructure
-│   ├── Ingestion
-│   ├── Qualité
-│   ├── Nettoyage
-│   └── Transformations
-│
-├── 📖 README
-│   ├── Architecture
-│   ├── Installation
-│   ├── Exécution
-│   └── Choix techniques
-│
-├── 🔧 dbt
-│   ├── Staging
-│   ├── Intermediate
-│   ├── Marts
-│   ├── Tests
-│   └── Documentation
-│
-├── ⚙️ GitHub Actions
-│   └── Pipeline automatisé
-│
-└── 📊 Dashboard
-    └── KPIsRapport de travail — NYC Taxi Data Warehouse
-1. Objectif du projet
+NYC Taxi Data Warehouse — Snowflake & dbt
+Projet de Data Engineering réalisé à partir des données NYC Yellow Taxi 2025.
 
-Mise en place d'un Data Warehouse Snowflake à partir des données NYC Yellow Taxi au format Parquet.
+L'objectif de ce projet est de construire un Data Warehouse analytique dans Snowflake, de transformer et contrôler les données avec SQL et dbt, puis de restituer les principaux indicateurs à travers un dashboard Streamlit.
 
-Architecture retenue :
+Le projet traite les 12 fichiers mensuels de janvier à décembre 2025.
 
-Parquet
-   ↓
-RAW
-   ↓
-STAGING
-   ↓
-FINAL
+Après application des règles de qualité, le dataset final contient :
 
+45 849 275 trajets
 
-Le projet est développé directement dans un projet Snowflake avec :
+🎯 Objectifs du projet
+Les objectifs principaux sont :
 
-des fichiers SQL pour les différentes étapes ;
+intégrer les données NYC Yellow Taxi au format Parquet dans Snowflake ;
 
-un fichier Python uniquement prévu pour télécharger les fichiers Parquet.
+construire une architecture Data Warehouse en couches RAW, STAGING et FINAL ;
 
-Il n'y aura pas de compte AWS S3/Azure personnel. Les fichiers sont chargés manuellement dans un stage interne Snowflake.
+nettoyer et standardiser les données ;
 
-2. Infrastructure Snowflake créée
+créer des indicateurs analytiques ;
 
-Base de données :
+appliquer des règles de qualité des données ;
+
+reproduire et structurer les transformations avec dbt ;
+
+mettre en place des tests dbt ;
+
+documenter les modèles dbt ;
+
+créer des marts analytiques ;
+
+développer un dashboard Streamlit connecté à Snowflake ;
+
+versionner le code avec Git.
+
+🏗️ Architecture du projet
+L'architecture globale est la suivante :
+
+Fichiers Parquet NYC Taxi
+          │
+          ▼
+  Snowflake Internal Stage
+          │
+          ▼
+         RAW
+          │
+          ▼
+       STAGING
+          │
+          ▼
+     INTERMEDIATE
+          │
+          ▼
+        FINAL
+          │
+          ├──────────────► Analyses SQL
+          │
+          ▼
+       Marts dbt
+          │
+          ▼
+  Dashboard Streamlit
+
+Cette architecture permet de séparer clairement :
+
+les données brutes ;
+
+les données nettoyées ;
+
+les transformations analytiques ;
+
+les données finales ;
+
+les restitutions analytiques.
+
+🛠️ Technologies utilisées
+Technologie	Utilisation
+Snowflake	Data Warehouse et traitement SQL
+SQL	Chargement, nettoyage, transformation et analyse
+Parquet	Format des données sources
+Python	Téléchargement des fichiers
+dbt	Transformation, tests et documentation
+Streamlit	Dashboard interactif
+Git / GitHub	Versionnement du code
+
+📊 Source des données
+Le projet utilise les données NYC Yellow Taxi Trip Records, publiées par la New York City Taxi & Limousine Commission (TLC).
+
+Les données sont fournies sous forme de fichiers Parquet mensuels.
+
+Les fichiers utilisés sont :
+
+yellow_tripdata_2025-01.parquet
+yellow_tripdata_2025-02.parquet
+yellow_tripdata_2025-03.parquet
+yellow_tripdata_2025-04.parquet
+yellow_tripdata_2025-05.parquet
+yellow_tripdata_2025-06.parquet
+yellow_tripdata_2025-07.parquet
+yellow_tripdata_2025-08.parquet
+yellow_tripdata_2025-09.parquet
+yellow_tripdata_2025-10.parquet
+yellow_tripdata_2025-11.parquet
+yellow_tripdata_2025-12.parquet
+
+Les données contiennent notamment :
+
+les dates et heures de pickup et dropoff ;
+
+la distance du trajet ;
+
+les zones de départ et d'arrivée ;
+
+le type de paiement ;
+
+le tarif ;
+
+les pourboires ;
+
+le montant total ;
+
+le fournisseur du service.
+
+❄️ Architecture Snowflake
+La base principale est :
 
 NYC_TAXI_DB
 
+Les trois schémas principaux sont :
 
-Schéma RAW utilisé :
+NYC_TAXI_DB
+│
+├── RAW
+├── STAGING
+└── FINAL
 
-NYC_TAXI_DB.RAW
+RAW
+La couche RAW contient les données provenant directement des fichiers Parquet.
 
+Les principaux objets sont :
 
-Un stage interne a été créé dans Snowflake.
-
-Un fichier Parquet de janvier 2025 a ensuite été uploadé manuellement dans ce stage.
-
-Les données ont déjà été inspectées précédemment avec Pandas.
-
-3. Difficulté rencontrée avec Python
-
-Une tentative de téléchargement direct depuis Python vers :
-
-https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet
-
-
-a échoué à cause d'un problème de résolution DNS / accès réseau depuis l'environnement Snowflake.
-
-Le choix retenu est donc :
-
-Python → téléchargement des fichiers uniquement lorsque nécessaire
-Snowflake → stockage, chargement et transformations
-
-
-Pour le fichier utilisé aujourd'hui, le Parquet a été uploadé manuellement dans le stage.
-
-4. Couche RAW
-
-Le fichier Parquet a été chargé dans :
-
+NYC_TAXI_DB.RAW.NYC_TAXI_STAGE
+NYC_TAXI_DB.RAW.PARQUET_FORMAT
 NYC_TAXI_DB.RAW.YELLOW_TRIPS
 
+Un stage interne Snowflake a été créé afin de stocker les fichiers Parquet.
 
-Nombre de lignes :
+Les 12 fichiers mensuels ont été uploadés manuellement dans ce stage.
 
-3 475 226
+La couche RAW conserve les données sources avant les transformations analytiques.
 
+STAGING
+La couche STAGING prépare les données pour les transformations analytiques.
 
-Nous avons notamment rencontré un problème de timestamp provenant des valeurs Parquet. Les colonnes de dates ont été converties correctement avec :
-
-TO_TIMESTAMP_NTZ("tpep_pickup_datetime", 6)
-TO_TIMESTAMP_NTZ("tpep_dropoff_datetime", 6)
-
-
-Les noms des colonnes Parquet nécessitent également des guillemets lorsqu'ils conservent leur casse d'origine.
-
-5. Couche STAGING
-
-Une table :
+Table principale :
 
 NYC_TAXI_DB.STAGING.YELLOW_TRIPS
 
+Les principales transformations réalisées sont :
 
-a été créée.
+conversion des timestamps ;
 
-Elle contient les données nettoyées et enrichies, mais sans supprimer les anomalies afin de conserver la possibilité de les analyser.
+standardisation des colonnes ;
 
-Nombre de lignes :
+calcul de la durée ;
 
-3 475 226
+création des dimensions temporelles ;
 
-Colonnes retenues
-vendor_id
-pickup_datetime
-dropoff_datetime
-trip_distance
-distance_category
-pickup_location_id
-dropoff_location_id
-payment_type
-fare_amount
-tip_amount
-total_amount
-trip_duration_seconds
-speed_mph
-pickup_day_name
-is_weekend
-pickup_period
+calcul de la vitesse ;
 
+catégorisation des distances ;
 
-RatecodeID et passenger_count ont été écartés car ils contenaient beaucoup de valeurs nulles et n'étaient pas nécessaires pour notre analyse.
+préparation des indicateurs financiers.
 
-6. Enrichissements réalisés
+FINAL
+La couche FINAL contient les données nettoyées et validées destinées aux analyses.
+
+Table principale :
+
+NYC_TAXI_DB.FINAL.YELLOW_TRIPS
+
+Le dataset final contient :
+
+45 849 275 trajets
+
+et couvre :
+
+01/01/2025 → 31/12/2025
+
+🧹 Nettoyage et qualité des données
+Plusieurs règles de qualité ont été appliquées.
+
+Validation des montants
+Les trajets conservés doivent respecter :
+
+fare_amount > 0
+AND total_amount > 0
+
+Les montants nuls ou négatifs sont donc exclus de la table finale.
+
+Validation des distances
+Les trajets dont la distance est supérieure à :
+
+1000 miles
+
+sont considérés comme des valeurs extrêmes et sont exclus de FINAL.
+
+Les trajets avec :
+
+trip_distance = 0
+
+sont conservés afin de ne pas supprimer inutilement des données.
+
+Ratio tarif / distance
+Le ratio suivant a également été contrôlé :
+
+fare_amount / trip_distance
+
+Les trajets présentant un ratio supérieur à :
+
+10 000 $ / mile
+
+sont considérés comme des anomalies extrêmes et sont exclus.
+
+Lorsque trip_distance = 0, le ratio n'est pas calculé.
+
+Validation des dates
+Les données finales sont limitées à l'année 2025 :
+
+2025-01-01 → 2025-12-31
+
+🔧 Enrichissement des données
+Plusieurs indicateurs analytiques ont été ajoutés.
+
 Durée du trajet
-
-Calculée en secondes :
+La durée est calculée en secondes avec :
 
 DATEDIFF(
     'second',
@@ -156,360 +242,547 @@ DATEDIFF(
     dropoff_datetime
 )
 
-Vitesse
+Elle peut ensuite être convertie en minutes pour les analyses.
 
-Calculée en miles par heure lorsque :
+Vitesse moyenne
+La vitesse moyenne est calculée en miles par heure lorsque :
 
 durée > 0
+ET
 distance > 0
 
-
-Les autres cas produisent NULL.
-
-Nous avons vérifié :
-
-2 051 trajets avec durée <= 0
-90 893 trajets avec distance <= 0
-692 avec les deux problèmes
-
-
-Donc :
-
-2 051 + 90 893 - 692 = 92 252
-
-
-ce qui correspond exactement aux 92 252 speed_mph NULL.
+Dans les autres cas, la valeur est NULL.
 
 Jour de la semaine
+Une dimension pickup_day_name permet de classer les trajets selon :
 
-Une colonne :
-
-pickup_day_name
-
-
-a été ajoutée.
-
-Exemple :
-
-Thu
 Mon
 Tue
+Wed
+Thu
+Fri
+Sat
+Sun
 
-Week-end
+Weekday / Weekend
+Les trajets sont également classés en :
 
-Une colonne :
+Weekday
+Weekend
 
-is_weekend
+Périodes de la journée
+La classification finale suit le découpage du brief :
 
+00h–05h → night
+06h–09h → morning
+10h–15h → day
+16h–19h → evening_rush
+20h–23h → evening
 
-a été ajoutée.
+Cette dimension permet notamment d'analyser les volumes, revenus, distances, durées et vitesses selon la période de la journée.
 
-Nombre de trajets le week-end :
+Catégories de distance
+Les trajets sont classés selon les règles suivantes :
 
-878 993
+invalid       distance <= 0
+short         distance < 1
+medium        distance < 5
+long          distance < 10
+very_long     distance >= 10
 
-Période de la journée
+📈 KPIs globaux
+Les principaux KPIs calculés sur le dataset final sont :
 
-Une colonne :
+KPI	Valeur
+Nombre de trajets	45 849 275
+Chiffre d'affaires	1 325 793 722,17 $
+Montant moyen	28,92 $
+Total des pourboires	138 445 889,46 $
+Pourboire moyen	3,02 $
+Distance moyenne	3,40 miles
+Durée moyenne	17,33 minutes
+Vitesse moyenne	11,31 mph
 
-pickup_period
+📅 Analyse mensuelle
+Les 12 mois de 2025 sont présents dans les données finales.
 
+Mois	Nombre de trajets
+Janvier	3 329 561
+Février	3 393 280
+Mars	3 934 642
+Avril	3 782 082
+Mai	4 264 147
+Juin	4 045 163
+Juillet	3 650 249
+Août	3 311 245
+Septembre	3 996 343
+Octobre	4 105 093
+Novembre	3 783 645
+Décembre	4 253 825
 
-avec les catégories :
+🗓️ Analyse Weekday / Weekend
+La répartition des trajets est :
 
-night
-morning
-afternoon
-evening
+Type de jour	Nombre de trajets
+Weekday	32 782 000
+Weekend	13 067 275
 
-Catégorie de distance
+Les analyses permettent de comparer notamment :
 
-Une colonne :
+le nombre de trajets ;
 
-distance_category
+le chiffre d'affaires ;
 
+le montant moyen ;
 
-a été ajoutée :
+les pourboires ;
 
-invalid       trip_distance <= 0
-short         trip_distance < 1
-medium        trip_distance < 5
-long          trip_distance < 10
-very_long     trip_distance >= 10
+la distance moyenne ;
 
+la durée moyenne ;
 
-Distribution observée :
+la vitesse moyenne.
 
-medium       2 063 682
-short          794 766
-long           290 230
-very_long      235 655
-invalid         90 893
+🔎 Analyses SQL
+Plusieurs analyses ont été réalisées à partir de la table FINAL.
 
+Elles portent notamment sur :
 
-Total :
+les volumes mensuels ;
 
-3 475 226
+les périodes de la journée ;
 
-7. Analyse de qualité des données
+les jours de la semaine ;
 
-Plusieurs anomalies ont été identifiées.
+Weekday / Weekend ;
 
-Montants
+les types de paiement ;
 
-Avant filtrage :
+les zones de pickup ;
 
-fare_amount <= 0       145 516
-total_amount <= 0        63 596
+les zones de dropoff ;
 
+les couples pickup / dropoff ;
 
-Les deux catégories se recouvrent.
+les revenus par zone ;
 
-La règle retenue pour FINAL est :
+les catégories de distance ;
 
-fare_amount > 0
-AND total_amount > 0
+les indicateurs opérationnels.
 
-Distance
+Les scripts SQL sont regroupés dans :
 
-Nous avons trouvé :
+sql/
 
-116 trajets avec trip_distance > 1000
+🧱 Projet dbt
+Un projet dbt a été créé et exécuté directement dans Snowflake Workspace.
 
+Le projet est organisé en trois niveaux :
 
-La règle retenue est :
+dbt/
+│
+├── models/
+│   ├── staging/
+│   ├── intermediate/
+│   └── marts/
+│
+├── tests/
+├── macros/
+├── analyses/
+├── seeds/
+└── snapshots/
 
-trip_distance <= 1000
+Modèles Staging
+stg_yellow_trips
 
-Ratio tarif / distance
+Matérialisation :
 
-Des valeurs extrêmes ont été identifiées.
+VIEW
 
-Exemple :
+Ce modèle constitue la première étape de transformation dans dbt.
 
-trip_distance = 1.6
-fare_amount   = 863 372.12
-total_amount  = 863 380.37
+Modèle Intermediate
+int_yellow_trips_enriched
 
+Matérialisation :
 
-Le ratio était :
+VIEW
 
-539 607.575 $ / mile
+Ce modèle contient les enrichissements analytiques :
 
+durée ;
 
-Nous avons analysé les ratios et obtenu :
+vitesse ;
 
-> 100       : 15 964
-> 1 000     : 8 856
-> 5 000     : 687
-> 10 000    : 30
+jour ;
 
+type de jour ;
 
-Les 30 observations avec :
+période ;
 
-fare_amount / trip_distance > 10 000
+catégorie de distance.
 
+Modèles Marts
+Les modèles analytiques sont :
 
-ont été considérées comme des anomalies extrêmes et exclues de FINAL.
+fct_yellow_trips
+mart_dashboard_kpi
+mart_monthly_kpi
+mart_day_type_kpi
 
-Important : les trajets avec :
+Ils sont matérialisés en :
 
-trip_distance = 0
+TABLE
 
+Le modèle factuel contient :
 
-sont conservés. Le ratio tarif/distance n'est appliqué que lorsque la distance est strictement positive.
+45 849 275 trajets
 
-8. Couche FINAL
+🧪 Tests dbt
+Une suite de tests a été mise en place afin de contrôler la qualité des données.
 
-Le fichier SQL :
+Les tests vérifient notamment :
 
-transform_final.sql
+les catégories de distance ;
 
+les jours de la semaine ;
 
-a été créé.
+les périodes temporelles ;
 
-La table :
+la qualité de la table factuelle ;
 
-NYC_TAXI_DB.FINAL.YELLOW_TRIPS
+la plage de dates.
 
+Les tests métier sont :
 
-est créée à partir de STAGING.
+fct_yellow_trips_quality
+fct_yellow_trips_date_range
 
-Règles actuelles :
+Le dernier dbt test exécuté donne :
 
-WHERE fare_amount > 0
-  AND total_amount > 0
-  AND trip_distance <= 1000
-  AND (
-      trip_distance = 0
-      OR fare_amount / trip_distance <= 10000
-  )
+PASS = 5
+WARN = 0
+ERROR = 0
+SKIP = 0
+TOTAL = 5
 
+Le dernier dbt run donne :
 
-Nombre final de lignes :
+PASS = 6
+WARN = 0
+ERROR = 0
+SKIP = 0
+TOTAL = 6
 
-3 329 553
+Le projet a également été compilé avec succès :
 
-Contrôle final
+dbt compile → SUCCESS
 
-Les contrôles donnent :
+📚 Documentation dbt
+Les modèles et les principales colonnes sont documentés dans :
 
-invalid_fare       = 0
-invalid_total      = 0
-invalid_distance   = 0
-extreme_ratio      = 0
+dbt/models/schema.yml
 
+La documentation dbt a été générée avec succès.
 
-La couche FINAL de janvier est donc validée.
+Le projet reconnaît actuellement :
 
-9. Structure actuelle du projet
+6 models
+5 data tests
+1 source
 
-Le projet Snowflake est organisé autour des étapes suivantes :
+La documentation permet notamment de décrire :
 
-NYC_TAXI_DWH/
+les modèles ;
+
+les colonnes ;
+
+les indicateurs calculés ;
+
+les règles métier ;
+
+les dépendances entre transformations.
+
+📊 Dashboard Streamlit
+Un dashboard Streamlit a été développé pour présenter les principaux résultats.
+
+L'application utilise la session Snowflake active :
+
+from snowflake.snowpark.context import get_active_session
+
+session = get_active_session()
+
+Aucune connexion externe à Snowflake n'est donc nécessaire.
+
+Le dashboard présente notamment :
+
+les KPIs globaux ;
+
+le chiffre d'affaires ;
+
+le nombre de trajets ;
+
+le montant moyen ;
+
+les pourboires ;
+
+la distance moyenne ;
+
+la durée moyenne ;
+
+la vitesse moyenne ;
+
+l'évolution mensuelle ;
+
+la comparaison Weekday / Weekend ;
+
+un tableau récapitulatif mensuel.
+
+Les principaux composants Streamlit utilisés sont :
+
+st.metric()
+st.line_chart()
+st.bar_chart()
+st.dataframe()
+
+L'application est située dans :
+
+streamlit/streamlit_app.py
+
+📁 Structure du repository
+nyc_taxi_snowflake_dbt/
+│
+├── .gitignore
+├── README.md
+├── test.ipynb
+│
+├── data/
+│   ├── jeudi.md
+│   ├── plan.md
+│   └── wen.md
+│
+├── dbt/
+│   ├── dbt_project.yml
+│   ├── packages.yml
+│   ├── profiles.yml
+│   │
+│   ├── models/
+│   │   ├── schema.yml
+│   │   ├── _sources.yml
+│   │   ├── staging/
+│   │   ├── intermediate/
+│   │   └── marts/
+│   │
+│   └── tests/
 │
 ├── python/
-│   └── ...
+│   └── download_parquet.py
 │
-└── sql/
-    ├── ...
-    ├── clean_staging.sql
-    └── transform_final.sql
+├── sql/
+│   ├── load_raw.sql
+│   ├── clean_staging.sql
+│   ├── transform_final.sql
+│   ├── analysis.sql
+│   └── dashboard_views.sql
+│
+└── streamlit/
+    └── streamlit_app.py
 
+🚀 Reproduction du projet
+Prérequis
+Pour reproduire le projet, il faut notamment :
 
-Le fichier Python servira uniquement à gérer le téléchargement des fichiers Parquet.
+un compte Snowflake ;
 
-10. Ce qui reste à faire
-Étape 1 — Finaliser la structure SQL
+un warehouse Snowflake ;
 
-Vérifier que les fichiers SQL sont correctement organisés et que les scripts peuvent être rejoués dans l'ordre.
+Python ;
 
-Ordre logique :
+dbt avec l'adaptateur Snowflake ;
 
+Git.
+
+1. Télécharger les données
+Le script Python utilisé pour télécharger les fichiers est :
+
+python/download_parquet.py
+
+Les fichiers Parquet sont ensuite disponibles localement avant leur upload dans Snowflake.
+
+Les fichiers Parquet ne sont pas destinés à être versionnés dans Git en raison de leur taille.
+
+2. Préparer Snowflake
+Créer la base et les schémas :
+
+CREATE DATABASE NYC_TAXI_DB;
+
+CREATE SCHEMA NYC_TAXI_DB.RAW;
+CREATE SCHEMA NYC_TAXI_DB.STAGING;
+CREATE SCHEMA NYC_TAXI_DB.FINAL;
+
+Créer ensuite le stage interne et le File Format Parquet.
+
+Les fichiers mensuels sont uploadés dans le stage Snowflake.
+
+3. Charger les données RAW
+Le script :
+
+sql/load_raw.sql
+
+permet de charger les données Parquet dans :
+
+NYC_TAXI_DB.RAW.YELLOW_TRIPS
+
+4. Construire STAGING et FINAL
+Les transformations SQL principales sont :
+
+sql/clean_staging.sql
+sql/transform_final.sql
+
+Les analyses sont disponibles dans :
+
+sql/analysis.sql
+
+Les vues destinées au dashboard historique sont définies dans :
+
+sql/dashboard_views.sql
+
+⚙️ Exécution dbt
+Le projet dbt se trouve dans :
+
+dbt/
+
+La configuration utilise Snowflake avec :
+
+Warehouse : COMPUTE_WH
+Database  : NYC_TAXI_DB
+Schema    : DBT_DEV
+Threads   : 8
+Target    : dev
+
+Le projet a été exécuté directement dans Snowflake Workspace.
+
+Les commandes utilisées sont :
+
+dbt compile --target dev
+dbt run --target dev
+dbt test --target dev
+
+Résultats :
+
+dbt compile → SUCCESS
+dbt run     → 6/6 PASS
+dbt test    → 5/5 PASS
+
+🔐 Gestion des fichiers sensibles
+Les fichiers contenant des informations sensibles ne doivent pas être versionnés.
+
+Le .gitignore doit notamment exclure :
+
+.env
+.streamlit/secrets.toml
+*.key
+*.pem
+
+Les fichiers générés par dbt doivent également être exclus :
+
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+
+Les fichiers Parquet sont exclus du repository :
+
+*.parquet
+
+Le profil dbt contenant des informations d'authentification ne doit pas être publié s'il contient des credentials sensibles.
+
+📌 État du projet
+Élément	État
+Base Snowflake	✅ Terminé
+Schéma RAW	✅ Terminé
+Schéma STAGING	✅ Terminé
+Schéma FINAL	✅ Terminé
+Stage interne	✅ Terminé
+File Format Parquet	✅ Terminé
+Chargement des données	✅ Terminé
+Transformations SQL	✅ Terminé
+Analyse qualité	✅ Terminé
+Analyses SQL	✅ Terminé
+Projet dbt	✅ Terminé
+Modèles dbt	✅ Terminé
+Tests dbt	✅ 5/5
+Documentation dbt	✅ Générée
+Dashboard Streamlit	✅ Terminé
+Repository GitHub	🟡 Finalisation
+GitHub Actions	⭕ Non implémenté
+
+🔄 Orchestration
+L'orchestration avec GitHub Actions faisait partie des options avancées du brief.
+
+Elle n'a pas été implémentée dans cette version du projet.
+
+Le projet se concentre sur le pipeline principal :
+
+Ingestion
+   ↓
+Snowflake
+   ↓
 RAW
- ↓
+   ↓
 STAGING
- ↓
+   ↓
+INTERMEDIATE
+   ↓
 FINAL
+   ↓
+dbt
+   ↓
+Tests qualité
+   ↓
+Marts analytiques
+   ↓
+Streamlit
 
-Étape 2 — Charger les autres mois
+🎓 Conclusion
+Ce projet met en œuvre un pipeline complet de Data Engineering autour des données NYC Yellow Taxi 2025.
 
-Nous devons récupérer les autres fichiers Yellow Taxi 2025 :
+Il permet de passer de fichiers Parquet bruts à un Data Warehouse structuré dans Snowflake, puis à des modèles analytiques testés avec dbt et à un dashboard Streamlit.
 
-janvier
-février
-mars
-avril
-mai
-juin
-juillet
-août
-septembre
-octobre
-novembre
-décembre
+Le dataset final contient :
 
+45 849 275 trajets
 
-Janvier est déjà notre référence.
+Le projet met en œuvre :
 
-Étape 3 — Automatiser le chargement
+une architecture Data Warehouse en couches ;
 
-L'objectif sera d'éviter de refaire manuellement :
+l'ingestion de fichiers Parquet dans Snowflake ;
 
-upload
-COPY
-transformation
-DROP
-CREATE
+des transformations SQL ;
 
+des règles de qualité ;
 
-pour chaque mois.
+des enrichissements analytiques ;
 
-Il faudra définir une stratégie permettant de charger les différents Parquet dans RAW puis d'appliquer le même traitement SQL.
+des modèles dbt ;
 
-Étape 4 — Construire la table annuelle
+des tests dbt ;
 
-À terme, FINAL devra représenter l'ensemble de l'année et non uniquement janvier.
+de la documentation dbt ;
 
-L'objectif sera donc d'obtenir une table contenant les données des 12 mois avec exactement la même structure.
+des marts analytiques ;
 
-Étape 5 — Contrôles qualité sur l'ensemble de l'année
+un dashboard Streamlit.
 
-Une fois les 12 mois chargés, refaire les contrôles :
+Les principales validations obtenues sont :
 
-nombre de lignes ;
+Snowflake              ✅
+RAW / STAGING / FINAL  ✅
+Analyses SQL           ✅
+dbt compile            ✅
+dbt run                ✅ 6/6
+dbt test               ✅ 5/5
+Documentation dbt      ✅
+Dashboard Streamlit    ✅
 
-dates min/max ;
-
-valeurs nulles ;
-
-distances invalides ;
-
-montants invalides ;
-
-ratios tarif/distance ;
-
-catégories de distance ;
-
-répartition semaine/week-end ;
-
-périodes de la journée.
-
-Étape 6 — Partie analytique
-
-Une fois le Data Warehouse terminé, nous pourrons construire les analyses demandées par le projet, par exemple :
-
-nombre de trajets ;
-
-chiffre d'affaires ;
-
-montant moyen ;
-
-pourboires ;
-
-durée moyenne ;
-
-distance moyenne ;
-
-évolution mensuelle ;
-
-comportement semaine/week-end ;
-
-analyse par période de la journée ;
-
-analyse par zone de pickup/dropoff.
-
-11. Point de reprise pour demain
-
-Ne pas modifier la logique de janvier pour l'instant.
-
-La prochaine étape logique est :
-
-Automatiser le chargement des autres fichiers Parquet
-                    ↓
-                RAW annuel
-                    ↓
-              STAGING annuel
-                    ↓
-               FINAL annuel
-                    ↓
-             analyses SQL
-
-
-Janvier sert désormais de modèle validé pour les transformations.
-
-État actuel :
-
-Infrastructure Snowflake      ✅
-Stage interne                 ✅
-RAW janvier                   ✅
-STAGING janvier               ✅
-Enrichissements               ✅
-Analyse qualité               ✅
-FINAL janvier                 ✅
-Contrôles FINAL               ✅
-
-11 autres mois                ⏳
-Automatisation                ⏳
-FINAL annuel                  ⏳
-Analyses finales              ⏳
+Le projet constitue ainsi une chaîne complète allant de l'ingestion des données jusqu'à leur exploitation analytique et leur visualisation.
